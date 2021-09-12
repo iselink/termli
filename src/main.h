@@ -5,7 +5,9 @@
 #ifndef H_MAIN_INCLUDED
 #define  H_MAIN_INCLUDED
 
+#define VERSION_STRING "0.0.1 Dev"
 
+void help();
 
 #endif // H_MAIN_INCLUDED
 

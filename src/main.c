@@ -5,7 +5,6 @@
 #include <locale.h>
 #include <math.h>
 #include <ncursesw/ncurses.h>
-//#include <ncurses.h>
 #include <error.h>
 
 #include <lua5.3/lua.h>
@@ -13,6 +12,7 @@
 #include <lua5.3/lauxlib.h>
 
 #include "main.h"
+#include "errorman.h"
 #include "api.h"
 #include "ui.h"
 
@@ -49,6 +49,10 @@ void dispose() {
 	}
 
 	ui_dispose();
+
+	//dump all error messages and then release memory
+	errorManagerDumpMessages(); 
+	errorManagerDispose();
 }
 
 /**
@@ -68,7 +72,22 @@ int main(int argc, char **argv) {
 	setlocale(LC_ALL, "");
 
 	if (argc != 2) {
-		fprintf(stderr, "Usage: program <lua script file>\n");
+		help();
+		return 1;
+	}
+
+	for (int index = 1; index < argc; index++) {
+		if (strcmp("--help", argv[index]) == 0) {
+			//just print help
+			help();
+			return 0;
+		}
+	}
+
+	///////////////////
+	if (errorManagerInitate()) {
+		fprintf(stderr, "Unable to allocate memory for error messages.\n");
+		fprintf(stderr, "I don't know on what device are you running this, but this program (probably) will not work.\n");
 		return 1;
 	}
 
@@ -124,12 +143,21 @@ int main(int argc, char **argv) {
 			lua_pop(lua_stat, lua_gettop(lua_stat));
 		} else {
 			//print error
-			//TODO: better error handling
-			printf("lua run error: %s\n", lua_tostring(lua_stat, -1));
+			//TODO: (a little) better error handling?
+			addErrorMessage(lua_tostring(lua_stat, -1));
 		}
 	}
 
 	dispose();
-
 	return 0;
+}
+
+/**
+ * print help message to the standart output.
+**/
+void help() {
+	printf("Termli %s\n\n", VERSION_STRING);
+	printf("Usage: termli <script>\n\n");
+	printf("Available flags:\n--help - print this help (with version).\n");
+	printf("\nIf necesary, program's repo is here: github.com/iselink/termli\n");
 }

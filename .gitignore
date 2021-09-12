@@ -1,3 +1,4 @@
 obj/*
 termli
 *.d
+.vscode
